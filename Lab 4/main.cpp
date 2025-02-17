@@ -20,7 +20,7 @@ int applyOperation(int a, int b, char op) {
 int precedence(char op) {
     if (op == '+' || op == '-') return 1;
     if (op == '*' || op == '/' || op == '%') return 2;
-    return 0;
+    return 0; // for any other operator
 }
 
 int evaluateExpression(string expression) {

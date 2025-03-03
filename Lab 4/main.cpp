@@ -27,7 +27,7 @@ int evaluateExpression(string expression) {
     stack<int> values;
     stack<char> ops;
     vector<string> steps;
-    string current_expression = expression; // to store the current expression
+    string current_expression = expression;
 
     // Print the initial expression
     cout << current_expression << endl;

@@ -110,3 +110,145 @@ Input string "aaabb" is ACCEPTED by the CFG.
 6. The entire input string `aaabb` is consumed, and the parser accepts it.
 
 This walkthrough demonstrates how the recursive descent parser works step-by-step to match the input string with the CFG rules. Let me know if you have further questions!
+
+
+
+```c++
+#include <iostream>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+map<char, vector<string>> productions;
+bool DEBUG = true;
+
+void debug_print(const string& msg, int indent = 0) {
+    if (DEBUG) {
+        for (int i = 0; i < indent; i++) cout << "  ";
+        cout << msg << endl;
+    }
+}
+
+bool isNonTerminal(char symbol) {
+    return productions.find(symbol) != productions.end();
+}
+
+bool parseString(const string& input, int& index, char nonTerminal, int depth = 0) {
+    // debug_print("Trying to parse " + string(1, nonTerminal) + " at index " + to_string(index), depth);
+    
+
+    vector<string> prods = productions[nonTerminal];
+    sort(prods.begin(), prods.end(), 
+         [](const string& a, const string& b) { return a.length() < b.length(); });
+    
+    for (const string& production : prods) {
+        // debug_print("Trying production " + string(1, nonTerminal) + " -> " + production, depth);
+        
+        int savedIndex = index;
+        bool match = true;
+        
+        // Handle epsilon production
+        if (production == "e") {
+            // debug_print("Epsilon production found - success without consuming input", depth);
+            return true;
+        }
+
+        for (char symbol : production) {
+            if (isNonTerminal(symbol)) {
+                //debug_print("Processing non-terminal " + string(1, symbol), depth);
+                
+                if (!parseString(input, index, symbol, depth + 1)) {
+                    // Check if this non-terminal has epsilon production
+                    bool hasEpsilon = false;
+                    for (const string& p : productions[symbol]) {
+                        if (p == "e") {
+                            hasEpsilon = true;
+                            break;
+                        }
+                    }
+                    
+                    if (hasEpsilon) {
+                        // debug_print("Non-terminal " + string(1, symbol) + " can be epsilon", depth);
+                        continue;
+                    }
+                    
+                    match = false;
+                    // debug_print("Failed to match non-terminal " + string(1, symbol), depth);
+                    break;
+                }
+            } else {
+                if (index >= input.size() || input[index] != symbol) {
+                    match = false;
+                    // debug_print("Failed to match terminal " + string(1, symbol) + " at index " + to_string(index), depth);
+                    break;
+                }
+                // debug_print("Matched terminal " + string(1, symbol) + " at index " + to_string(index), depth);
+                index++;
+            }
+        }
+
+        if (match) {
+            // debug_print("Successfully matched production " + string(1, nonTerminal) + " -> " + production, depth);
+            return true;
+        }
+
+        // debug_print("Backtracking: resetting index from " + to_string(index) + " to " + to_string(savedIndex), depth);
+        index = savedIndex;
+    }
+
+    // debug_print("Failed to match any production for " + string(1, nonTerminal), depth);
+    return false;
+}
+
+int main() {
+    int numProductions;
+    cin >> numProductions;
+    cin.ignore();
+
+    for (int i = 0; i < numProductions; ++i) {
+        string line;
+        getline(cin, line);
+        stringstream ss(line);
+
+        char nonTerminal;
+        ss >> nonTerminal;
+
+        string production;
+        while (ss >> production) {
+            productions[nonTerminal].push_back(production);
+        }
+    }
+
+    cout << "\nGrammar productions:" << endl;
+    for (const auto& rule : productions) {
+        cout << "Non-terminal: " << rule.first << endl;
+        for (const string& prod : rule.second) {
+            cout << "  -> " << prod << endl;
+        }
+    }
+
+    int test;
+    cin >> test;
+    cin.ignore();
+    while(test--) {
+        string input;
+        cout << "Enter the input string to parse: ";
+        cin >> input;
+
+        int index = 0;
+        bool accepted = parseString(input, index, 'S');
+
+        if (accepted && index == input.size()) {
+            cout << "Input string \"" << input << "\" is ACCEPTED by the CFG." << endl;
+        } else {
+            cout << "Input string \"" << input << "\" is REJECTED by the CFG." << endl;
+        }
+    }
+
+    return 0;
+}
+```

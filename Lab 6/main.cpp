@@ -1,13 +1,8 @@
 #include<bits/stdc++.h>
-
 using namespace std;
-
 map<pair<char, char>, char> transitions;
 set<char> acceptingStates;
 char startState;
-
-
-
 int main() {
     int numTransitions;
     cin >> numTransitions;
@@ -43,6 +38,5 @@ int main() {
             cout << "Rejected" << endl;
         }
     }
-
     return 0;
 }
